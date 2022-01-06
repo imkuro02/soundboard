@@ -1,0 +1,26 @@
+./create_sink.sh
+
+
+# lists all inputs, find pythons input and do next step
+pacmd list-sink-inputs |awk '/index:/ {print $0} /name:/ {print $0};'
+
+# set python to play sound to PogXlr
+# the 16 in this case is the python script 
+pacmd move-sink-input 16 PogXlr 
+
+# get all "recording" devices
+pacmd list-source-outputs |grep -e name: -e index: -e application.process.binary -e source:
+OUTPUT:
+index: 107
+	source: 5 <alsa_input.usb-Generic_USB_Condenser_Microphone_201701110001-00.analog-stereo>
+		application.process.binary = "chromium"
+		module-stream-restore.id = "source-output-by-application-name:Chromium input"
+
+
+# same as previous, 107 is chromium, make it record from PogXlr
+pacmd move-source-output 107 PogXlr.monitor
+# play the sound now!
+# set device back
+pacmd move-source-output 107 alsa_input.usb-Generic_USB_Condenser_Microphone_201701110001-00.analog-stereo 
+
+
