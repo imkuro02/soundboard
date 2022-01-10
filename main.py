@@ -1,49 +1,44 @@
 import os
-import pulsectl
+import serial
+import threading
+import serial
+from time import sleep
+import player
 
-pulse = pulsectl.Pulse('my-client-name')
-
-VIRT_MIC = 'PogXlr.monitor'
-VIRT_MIC_MONITOR = 'PogXlr'
-
-def change_mic(mic):
-    os.system(f'pacmd set-default-source {mic}')
-
-def get_default_mic():
-    return(pulse.server_info().default_source_name)
-
-def play_sound():
-    sound = 'bruh.wav'
-    os.system(f'paplay {sound} -d {VIRT_MIC_MONITOR}')
 
 def main():
-    '''
-    print(get_default_mic())
-    for i in pulse.sink_list():
-        print(i)
-    '''
-    for i in pulse.source_list():
-        if get_default_mic() in i.name:
-            default_mic = i
+    p = player.player()
+    serialPort = serial.Serial(
+        port="/dev/ttyUSB0", baudrate=9600, bytesize=8, timeout=2, stopbits=serial.STOPBITS_ONE
+    )
 
-    for i in pulse.source_list(): # Input Devices
-        print(i)
+    serialString = ""  # Used to hold data coming over UART
 
-    '''
-    for i in pulse.sink_list():
-        if VIRT_MIC in i.name:
-            new_mic = i.index
-    '''
+    while 1:
+        sleep(.05)
+        # Wait until there is data waiting in the serial buffer
+        if serialPort.in_waiting > 0:
+            # Read data out of the buffer until a carraige return / new line is found
+            serialString = serialPort.readline()
+            # Print the contents of the serial data
+            try:
+                output = serialString.decode("Ascii")
+                if len(output) != 0:
+                    print(output)
+                    if '1' in output : p.play_sound('bruh.wav') 
+                    if '2' in output : p.play_sound('fart.wav') 
 
-    change_mic(VIRT_MIC)
-    play_sound()
-    print('')
-    print(default_mic.name)
-    change_mic(default_mic.name)
-
+            except Exception as e:
+                print(e)
 
 
 if __name__ == '__main__':
+
+
+    # ./create_sink.sh
+
     main()
+
+    # pulsaudio -k
     #play_sound()
 
