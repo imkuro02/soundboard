@@ -2,6 +2,7 @@ import os
 import serial
 import threading
 import serial
+import random
 from time import sleep
 import player
 
@@ -24,9 +25,12 @@ def main():
             try:
                 output = serialString.decode("Ascii")
                 if len(output) != 0:
-                    print(output)
                     if '1' in output : p.play_sound('bruh.wav') 
-                    if '2' in output : p.play_sound('fart.wav') 
+                    index = random.randint(1, 11)
+                    RAND = random.randint(-1000, 1000)
+                    #if '2' in output : p.play_sound(f'moans/{index}.wav') 
+                    if '2' in output : 
+                        p.update_bind_default_mic() 
 
             except Exception as e:
                 print(e)
