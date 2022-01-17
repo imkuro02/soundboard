@@ -50,17 +50,7 @@ class player:
         #os.system(f'sox -t pulseaudio {default_mic} -t pulseaudio MixedSink pitch 0')
         #os.system(f'sox -t pulseaudio {sound_board}.monitor -t pulseaudio MixedSink pitch 0')
 
-  
-        self.proc = subprocess.Popen(f'sox -t pulseaudio {sound_board}.monitor -t pulseaudio MixedSink pitch 0', 
-                shell=True, 
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.STDOUT)
-
-        self.proc = subprocess.Popen(f'bash -c "exec -a FunnyMic sox -t pulseaudio {default_mic} -t pulseaudio MixedSink pitch 0"', 
-                shell=True, 
-                stdout=subprocess.DEVNULL, 
-                stderr=subprocess.STDOUT)
-        
+      
         
         self.default_speaker = default_speaker
         self.default_mic = default_mic
@@ -68,27 +58,41 @@ class player:
         self.players = []
 
         self.voices = [
-                f'bash -c "exec -a FunnyMic sox -t pulseaudio {self.default_mic} -t pulseaudio MixedSink pitch 0"',
-                f'bash -c "exec -a FunnyMic sox -t pulseaudio {self.default_mic} -t pulseaudio MixedSink pitch -500"',
-                f'bash -c "exec -a FunnyMic sox -t pulseaudio {self.default_mic} -t pulseaudio MixedSink pitch 500"',
-
-                f'bash -c "exec -a FunnyMic sox -t pulseaudio {self.default_mic} -t pulseaudio MixedSink reverb 100"',
+                f'sox -t pulseaudio {self.default_mic} -t pulseaudio MixedSink pitch 0',
+                f'sox -t pulseaudio {self.default_mic} -t pulseaudio MixedSink pitch -300',
+                f'sox -t pulseaudio {self.default_mic} -t pulseaudio MixedSink pitch 300',
+                f'sox -t pulseaudio {self.default_mic} -t pulseaudio MixedSink reverb 50',
                 ]
         
         self.voice = 0
 
+    def cleanup(self):
+        os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM) 
+        os.killpg(os.getpgid(self.soundboard_proc.pid), signal.SIGTERM) 
 
     def update_bind_default_mic(self):
-        os.system(f'pkill -f FunnyMic')
+        print(self.proc.pid)
+        os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM) #os.system(f'pkill -f FunnyMic')
         # echo and reverb instead of pitch
         self.voice += 1
         if self.voice >= len(self.voices): self.voice = 0
         print(self.voices[self.voice])
         self.proc = subprocess.Popen(self.voices[self.voice], 
-                shell=True, 
-                stdout=subprocess.DEVNULL, 
-                stderr=subprocess.STDOUT)
+            shell=True, preexec_fn=os.setsid,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.STDOUT)
 
+    def init_sound(self):
+        self.proc = subprocess.Popen(self.voices[0], 
+            shell=True, preexec_fn=os.setsid,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.STDOUT)
+
+
+        self.soundboard_proc = subprocess.Popen(f'sox -t pulseaudio {self.sound_board}.monitor -t pulseaudio MixedSink', 
+            shell=True, preexec_fn=os.setsid,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.STDOUT)
 
     def mute_mic(self,mute):
         os.system(f'pacmd set-source-mute {self.default_mic} {mute}')
