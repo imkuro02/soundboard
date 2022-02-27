@@ -50,13 +50,14 @@ class player:
         #os.system(f'sox -t pulseaudio {default_mic} -t pulseaudio MixedSink pitch 0')
         #os.system(f'sox -t pulseaudio {sound_board}.monitor -t pulseaudio MixedSink pitch 0')
 
-      
+    
+       
         
         self.default_speaker = default_speaker
         self.default_mic = default_mic
         self.sound_board = sound_board
         self.players = []
-
+        self.modules = []
         self.voices = [
                 f'sox -t pulseaudio {self.default_mic} -t pulseaudio MixedSink pitch 0',
                 f'sox -t pulseaudio {self.default_mic} -t pulseaudio MixedSink pitch -300',
@@ -66,9 +67,18 @@ class player:
         
         self.voice = 0
 
-    def cleanup(self):
+    def cleanup(self,full_cleanup=True):
         os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM) 
         os.killpg(os.getpgid(self.soundboard_proc.pid), signal.SIGTERM) 
+
+        # this will bascially always trigger unless specifically told NOT TO with "False" 
+        if full_cleanup: 
+            for i in self.modules:
+                os.popen(f'pactl unload-module {i}')
+
+
+    def get_voice(self):
+        return(self.voice)
 
     def update_bind_default_mic(self):
         print(self.proc.pid)
@@ -82,8 +92,15 @@ class player:
             stdout=subprocess.DEVNULL,
             stderr=subprocess.STDOUT)
 
-    def init_sound(self):
-        self.proc = subprocess.Popen(self.voices[0], 
+    def init_modules(self):
+        self.modules.append(os.popen('pactl load-module module-null-sink sink_name=SoundBoard').read())
+        self.modules.append(os.popen('pactl load-module module-null-sink sink_name=MixedSink').read())
+        for i in self.modules:
+            print('module : ',i)
+
+
+    def init_sox(self):   
+        self.proc = subprocess.Popen(self.voices[self.voice], 
             shell=True, preexec_fn=os.setsid,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.STDOUT)
