@@ -120,7 +120,7 @@ class player:
         def play(player_id, sound):
             print(f'playing {self.sound}')
             self.mute_mic(1)
-            os.system(f'paplay {self.sound} -d {self.sound_board} & paplay {self.sound} -d {self.default_speaker}')
+            os.system(f'paplay {self.sound} -d {self.sound_board} & paplay {self.sound} -d {self.default_speaker} --volume 25536') # read man page for vol
             self.players.remove(player_id)
             if len(self.players) == 0:
                 self.mute_mic(0)

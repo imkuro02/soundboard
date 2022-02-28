@@ -36,7 +36,8 @@ def ll():
         if i != None:
             print(i, i.volume,', ',i.proplist['application.process.binary'].lower())
         else:
-            print('None')
+            pass
+            #print('None')
     print('ll##########')
 
 def main():
@@ -67,7 +68,6 @@ def link_client(key,client=None):
     
 def change_volume(vol):
     for i, link in enumerate(links):
-        print(link)
         if link != None:
             with Pulse(CLIENT) as pulse:
                 for x in pulse.sink_input_list():
@@ -77,7 +77,7 @@ def change_volume(vol):
                         if link.index != x.index:
                             link_client(i,link)
                         else:
-                            print(link,x)
+                            #print(link,x)
                             pulse.volume_set_all_chans(link, (int(vol[i])/100))
     
 

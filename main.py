@@ -57,24 +57,39 @@ def main():
                     output = map(int, output)
                     output = list(output)
                     volume.change_volume(output)
-                #p.play_sound(f'sounds/fart.wav') 
-
+                else:
                 
-                if len(output) != 0:
+                    '''
                     index = random.randint(1, 11)
                     if '1' in output : p.play_sound(f'sounds/moans/{index}.wav') 
                     RAND = random.randint(-1000, 1000)
                     #if '2' in output : p.play_sound(f'moans/{index}.wav') 
                     if '2' in output : 
                         p.update_bind_default_mic() 
-                    if 'G' in output:
-                        volume.link_client(0)
-                    if 'H' in output:
-                        volume.link_client(1)
-                    if 'I' in output:
-                        volume.link_client(2)               
-                    if 'J' in output:
-                        volume.link_client(3)               
+                    '''
+                    # last 4 buttons are volume slider links
+                    if int(output)>=6:
+                        if '6' in output:
+                            volume.link_client(0)
+                        if '7' in output:
+                            volume.link_client(1)
+                        if '8' in output:
+                            volume.link_client(2)               
+                        if '9' in output:
+                            volume.link_client(3)               
+                    else: # if not the last 4 buttons then:
+                        if '0' in output: # if 0, do mic change
+                            p.update_bind_default_mic() 
+                        else: # if not 0, play sound from folder
+                            output = int(output)
+                            path = f'sounds/{output}/'
+                            sounds = os.listdir(path)
+                            if len(sounds) > 0:
+                                print(sounds)
+                                sound = random.randrange(0, len(sounds))
+                                p.play_sound(f'{path}{sounds[sound]}') 
+
+
                 # this code gets current voice mode and sends that to arduino
                 '''
                 voice_mode = p.get_voice()
