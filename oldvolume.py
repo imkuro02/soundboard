@@ -7,6 +7,12 @@ CLIENT='dummy-client'
 
 links = []
 
+class Source:
+    def __init__(self, index, name, volume):
+        self.index  = index
+        self.name   = name 
+        self.volume = volume
+
 def compare_client(window_name,window_pid):
     with Pulse(CLIENT) as pulse:
          # enum all pulse outputs
@@ -21,16 +27,14 @@ def get_window():
     window_pid = subprocess.check_output('xdotool getwindowfocus getwindowpid', shell=True).decode('utf-8')
     window_id = subprocess.check_output(f'xdotool search --pid {window_pid}', shell=True).decode('utf-8').split()
     window_name = subprocess.check_output(f'xdotool getwindowname {window_id[0]}',shell=True).decode('utf-8').replace('\n','')
-    #return(compare_client(window_name,window_pid))
-    return({'name':window_name, 'pid':window_pid})
+    return(compare_client(window_name,window_pid))
 
 # list links
 def ll():
     print('LL----------')
     for i in links:
         if i != None:
-            #print(i, i.volume,', ',i.proplist['application.process.binary'].lower())
-            print(i)
+            print(i, i.volume,', ',i.proplist['application.process.binary'].lower())
         else:
             pass
             #print('None')
@@ -43,7 +47,11 @@ def main():
     print(links)
     
 def link_client(key,client=None):
-    client = get_window()
+    if client == None:
+        client = get_window()
+    else:
+        print('>',client)
+        client = compare_client(client.proplist['application.process.binary'],client.proplist['application.process.id'])
 
     # check if you are overwriting a key
     for i, cl in enumerate(links):
@@ -57,24 +65,20 @@ def link_client(key,client=None):
 
     # link client to key
     links[key] = client
-    print(ll())
     
 def change_volume(vol):
     for i, link in enumerate(links):
         if link != None:
             with Pulse(CLIENT) as pulse:
-                # enum all pulse outputs
-                for cl in pulse.sink_input_list():
-                    #print(link['name'].lower(),cl.proplist['application.process.binary'].lower())
-                    #print(int(link['pid']),cl.proplist['application.process.id'])
-                    if link['name'].lower() in cl.proplist['application.process.binary'].lower():
-                        pulse.volume_set_all_chans(cl, (int(vol[i])/100))
-                    if (int(link['pid']) == int(cl.proplist['application.process.id'])):
-                        pulse.volume_set_all_chans(cl, (int(vol[i])/100))
-
-
-
-
+                for x in pulse.sink_input_list():
+                    # if there is a link with this name, proceed
+                    if link.proplist['application.process.binary'] == x.proplist['application.process.binary']:
+                        # ok so, lets just relink this thing just to be safe :)
+                        if link.index != x.index:
+                            link_client(i,link)
+                        else:
+                            #print(link,x)
+                            pulse.volume_set_all_chans(link, (int(vol[i])/100))
     
 
 if __name__ == '__main__':
