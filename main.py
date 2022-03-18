@@ -8,8 +8,8 @@ import player
 import volume
 
 def reload_player(p):
-    for i in range(0,10):
-        sleep(3)
+    for i in range(0,6):
+        sleep(10)
         p.cleanup(False) # if you dont say False here, module-null-sink will get removed
         p.init_sox()
         print('reload: ',i)
@@ -20,8 +20,6 @@ def main():
     p = player.player()
     p.init_modules()
     p.init_sox()
-
-    volume.main()
 
     try:
         print('ready')
@@ -70,13 +68,13 @@ def main():
                     # last 4 buttons are volume slider links
                     if int(output)>=6:
                         if '6' in output:
-                            volume.link_client(0)
+                            pass
                         if '7' in output:
-                            volume.link_client(1)
+                            pass
                         if '8' in output:
-                            volume.link_client(2)               
+                            pass
                         if '9' in output:
-                            volume.link_client(3)               
+                            volume.get_window()
                     else: # if not the last 4 buttons then:
                         if '0' in output: # if 0, do mic change
                             p.update_bind_default_mic() 
