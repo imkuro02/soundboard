@@ -3,8 +3,8 @@ import os
 import time
 import subprocess
 
-CLIENT='dummy-client'
-CONFIG='sliders.data'
+CLIENT='my-client-name'
+CONFIG='settings.txt'
 
 links = [[],[],[],[]]
 
@@ -14,7 +14,8 @@ def get_window():
     print('compare name to these:\n')
     with Pulse(CLIENT) as pulse:
         for i, cl in enumerate(pulse.sink_input_list()):
-            print(cl.proplist['application.process.binary'])
+            if 'application.process.binary' in cl.proplist:
+                print(cl.proplist['application.process.binary'])
     print('')
     window_pid = subprocess.check_output('xdotool getwindowfocus getwindowpid', shell=True).decode('utf-8')
     window_id = subprocess.check_output(f'xdotool search --pid {window_pid}', shell=True).decode('utf-8').split()
@@ -40,8 +41,10 @@ def change_volume(vol):
                     #print(link['name'].lower(),cl.proplist['application.process.binary'].lower())
                     #print(int(link['pid']),cl.proplist['application.process.id'])
                     for source in link:
-                        if source.lower() in cl.proplist['application.process.binary'].lower():
-                            try:
-                                pulse.volume_set_all_chans(cl, (int(vol[i])/100))
-                            except pulsectl.pulsectl.PulseOperationFailed as e:
-                                print(e)
+                        # check if app has a process.binary
+                        if 'application.process.binary' in cl.proplist:
+                            if source.lower() in cl.proplist['application.process.binary'].lower():
+                                try:
+                                    pulse.volume_set_all_chans(cl, (int(vol[i])/100))
+                                except Exception as e:
+                                    print(e)

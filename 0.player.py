@@ -2,7 +2,7 @@ import pulsectl
 import threading
 import os
 import signal
-import atexit
+import subprocess
 
 pulse = pulsectl.Pulse('my-client-name')
 
@@ -37,7 +37,10 @@ class player:
             default_mic = DEFAULT_MIC, 
             virt_mic = VIRT_MIC, 
             sound_board = SOUND_BOARD):
-       
+
+        #os.system(f'pacmd load-module module-loopback source={default_mic} sink={sound_board}')
+        #os.system(f'pacmd load-module module-loopback source={default_mic} sink={virt_mic}')
+        
         # sox -t pulseaudio VirtMic -t pulseaudio MixedSink pitch -800
 
         # needs the .monitor at the end since its a source (pacmd list-sources)
@@ -55,22 +58,58 @@ class player:
         self.sound_board = sound_board
         self.players = []
         self.modules = []
+        self.voices = [
+                f'sox -t pulseaudio {self.default_mic} -t pulseaudio MixedSink',
+                f'sox -t pulseaudio {self.default_mic} -t pulseaudio MixedSink pitch -300',
+                f'sox -t pulseaudio {self.default_mic} -t pulseaudio MixedSink pitch 300',
+                f'sox -t pulseaudio {self.default_mic} -t pulseaudio MixedSink reverb 50',
+                ]
+        
+        self.voice = 0
 
     def cleanup(self,full_cleanup=True):
+        os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM) 
+        os.killpg(os.getpgid(self.soundboard_proc.pid), signal.SIGTERM) 
+
         # this will bascially always trigger unless specifically told NOT TO with "False" 
         if full_cleanup: 
             for i in self.modules:
-                print(i)
                 os.popen(f'pactl unload-module {i}')
+
+
+    def get_voice(self):
+        return(self.voice)
+
+    def update_bind_default_mic(self):
+        print(self.proc.pid)
+        os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM) #os.system(f'pkill -f FunnyMic')
+        # echo and reverb instead of pitch
+        self.voice += 1
+        if self.voice >= len(self.voices): self.voice = 0
+        print(self.voices[self.voice])
+        self.proc = subprocess.Popen(self.voices[self.voice], 
+            shell=True, preexec_fn=os.setsid,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.STDOUT)
 
     def init_modules(self):
         self.modules.append(os.popen('pactl load-module module-null-sink sink_name=SoundBoard').read())
-        #self.modules.append(os.popen('pactl load-module module-null-sink sink_name=MixedSink').read())
-        self.modules.append(os.popen(f'pactl load-module module-loopback source={DEFAULT_MIC} sink={SOUND_BOARD}').read())
-        #self.modules.append(os.popen(f'pactl load-module module-loopback source={DEFAULT_MIC} sink={VIRT_MIC}').read())
- 
+        self.modules.append(os.popen('pactl load-module module-null-sink sink_name=MixedSink').read())
         for i in self.modules:
             print('module : ',i)
+
+
+    def init_sox(self):   
+        self.proc = subprocess.Popen(self.voices[self.voice], 
+            shell=True, preexec_fn=os.setsid,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.STDOUT)
+
+
+        self.soundboard_proc = subprocess.Popen(f'sox -t pulseaudio {self.sound_board}.monitor -t pulseaudio MixedSink', 
+            shell=True, preexec_fn=os.setsid,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.STDOUT)
 
     def mute_mic(self,mute):
         os.system(f'pacmd set-source-mute {self.default_mic} {mute}')
