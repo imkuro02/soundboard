@@ -33,7 +33,7 @@ def change_volume(vol):
     try:
         with open(CONFIG) as config:
             content = config.readlines()
-            for i in range(1,3):
+            for i in range(0,3):
                 links[i] = content[i].replace('\n','').split(',')
                 #print(link)
     except FileNotFoundError:

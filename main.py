@@ -21,7 +21,7 @@ signal.signal(signal.SIGTERM, handle_exit)
 signal.signal(signal.SIGINT, handle_exit)
 
 
-print('2022-04-14 013000')
+print('2022-05-20 174200')
 
 def reload_player(p):
     for i in range(0,6):
