@@ -21,7 +21,7 @@ signal.signal(signal.SIGTERM, handle_exit)
 signal.signal(signal.SIGINT, handle_exit)
 
 
-print('2022-05-20 174200')
+print('2022-05-22 235800')
 
 def reload_player(p):
     for i in range(0,6):
@@ -116,7 +116,7 @@ def setup():
 
         # this is dirty af, check volume.py 
         with open(f'{PATH}/settings.txt', 'w') as f:
-            f.write('\n\n\n\n')
+            f.write('\n\n\n')
             f.close()
 
         os.chdir(PATH)
