@@ -9,6 +9,7 @@ pulse = pulsectl.Pulse('my-client-name')
 SOUND_BOARD= 'SoundBoard'
 VIRT_MIC = 'VirtMic'
 MIXED_SINK= 'MixedSink'
+PAPLAY_NAME= 'soundboardPaplay'
 
 def get_default_mic():
     for mic in pulse.source_list():
@@ -36,6 +37,7 @@ class player:
             default_speaker = DEFAULT_SPEAKER, 
             default_mic = DEFAULT_MIC, 
             virt_mic = VIRT_MIC, 
+            paplay_name = PAPLAY_NAME, 
             sound_board = SOUND_BOARD):
        
         # sox -t pulseaudio VirtMic -t pulseaudio MixedSink pitch -800
@@ -53,6 +55,7 @@ class player:
         self.default_speaker = default_speaker
         self.default_mic = default_mic
         self.sound_board = sound_board
+        self.paplay_name = paplay_name
         self.players = []
         self.modules = []
 
@@ -81,7 +84,9 @@ class player:
         def play(player_id, sound):
             print(f'playing {self.sound}')
             self.mute_mic(1)
-            os.system(f'paplay {self.sound} -d {self.sound_board} & paplay {self.sound} -d {self.default_speaker} --volume 25536') # read man page for vol
+            os.system(f"bash -c 'exec -a {self.paplay_name} paplay {self.sound} -d {self.sound_board}&'") # read man page for vol
+            os.system(f"bash -c 'exec -a {self.paplay_name} paplay {self.sound} -d {self.default_speaker} --volume 25536'") # read man page for vol
+            
             self.players.remove(player_id)
             if len(self.players) == 0:
                 self.mute_mic(0)

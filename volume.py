@@ -5,6 +5,7 @@ import subprocess
 
 CLIENT='my-client-name'
 CONFIG='settings.txt'
+PAPLAY_NAME= 'soundboardPaplay'
 
 links = [[],[],[],[]]
 
@@ -59,6 +60,13 @@ def change_volume(vol):
         # vol control for unlinked programs
         for cl in pulse.sink_input_list():
             if 'application.process.binary' in cl.proplist:
-                if cl.proplist['application.process.binary'].lower() not in sources:
-                    if cl.driver == 'protocol-native.c':
-                        pulse.volume_set_all_chans(cl, (int(vol[0])/100))
+                if cl.proplist['application.process.binary'].lower() in sources:
+                    return
+                # ignore soundboard playing stuff
+                if cl.proplist['application.name'] in PAPLAY_NAME:
+                    return
+                # ignore weird stuff
+                if cl.driver != 'protocol-native.c':
+                    return
+                print(cl.proplist['application.process.binary'].lower())
+                pulse.volume_set_all_chans(cl, (int(vol[0])/100))
