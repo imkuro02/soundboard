@@ -34,8 +34,7 @@ def change_volume(vol):
     try:
         with open(CONFIG) as config:
             content = config.readlines()
-            for i in range(1,3):
-                # content[i-1] because reading lines starts at 0, and we are linking sliders 1,2,3 to lines 0,1,2 
+            for i in range(1,4):
                 links[i] = content[i-1].replace('\n','').split(',')
                 #print(link)
     except FileNotFoundError:
@@ -60,14 +59,16 @@ def change_volume(vol):
                             
         # vol control for unlinked programs
         for cl in pulse.sink_input_list():
+            failed = False
             if 'application.process.binary' in cl.proplist:
                 if cl.proplist['application.process.binary'].lower() in sources:
-                    return
+                    failed = True
                 # ignore soundboard playing stuff
                 if cl.proplist['application.name'] in PAPLAY_NAME:
-                    return
+                    failed = True
                 # ignore weird stuff
                 if cl.driver != 'protocol-native.c':
-                    return
-                #print(cl.proplist['application.process.binary'].lower())
-                pulse.volume_set_all_chans(cl, (int(vol[0])/100))
+                    failed = True
+                if not failed:
+                    #print(cl.proplist['application.process.binary'].lower())
+                    pulse.volume_set_all_chans(cl, (int(vol[0])/100))
