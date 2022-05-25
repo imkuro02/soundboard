@@ -44,7 +44,6 @@ def change_volume(vol):
     sources = []
     with Pulse(CLIENT) as pulse:
         for i, link in enumerate(links):
-                if i == 0 : return # dont bother since slider 0 is for misc
                 # enum all pulse outputs
                 for cl in pulse.sink_input_list():
                     #print(link['name'].lower(),cl.proplist['application.process.binary'].lower())
