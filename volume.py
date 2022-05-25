@@ -34,8 +34,9 @@ def change_volume(vol):
     try:
         with open(CONFIG) as config:
             content = config.readlines()
-            for i in range(0,3):
-                links[i] = content[i].replace('\n','').split(',')
+            for i in range(1,3):
+                # content[i-1] because reading lines starts at 0, and we are linking sliders 1,2,3 to lines 0,1,2 
+                links[i] = content[i-1].replace('\n','').split(',')
                 #print(link)
     except FileNotFoundError:
         print(f'{CONFIG}, not found probably just written')
@@ -43,6 +44,7 @@ def change_volume(vol):
     sources = []
     with Pulse(CLIENT) as pulse:
         for i, link in enumerate(links):
+                if i == 0 : return # dont bother since slider 0 is for misc
                 # enum all pulse outputs
                 for cl in pulse.sink_input_list():
                     #print(link['name'].lower(),cl.proplist['application.process.binary'].lower())
@@ -53,7 +55,7 @@ def change_volume(vol):
                         if 'application.process.binary' in cl.proplist:
                             if source.lower() in cl.proplist['application.process.binary'].lower():
                                 try:
-                                    pulse.volume_set_all_chans(cl, (int(vol[i+1])/100))
+                                    pulse.volume_set_all_chans(cl, (int(vol[i])/100))
                                 except Exception as e:
                                     print(e)
                             
@@ -68,5 +70,5 @@ def change_volume(vol):
                 # ignore weird stuff
                 if cl.driver != 'protocol-native.c':
                     return
-                print(cl.proplist['application.process.binary'].lower())
+                #print(cl.proplist['application.process.binary'].lower())
                 pulse.volume_set_all_chans(cl, (int(vol[0])/100))
