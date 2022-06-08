@@ -21,7 +21,7 @@ signal.signal(signal.SIGTERM, handle_exit)
 signal.signal(signal.SIGINT, handle_exit)
 
 
-print('2022-05-25 235800')
+print('2022-06-08 162300')
 
 def reload_player(p):
     for i in range(0,6):
@@ -110,7 +110,7 @@ def setup():
         print('\nfirst time setup, creating ".soundboard"\n')
         os.makedirs(PATH) 
         os.makedirs(f'{PATH}/sounds/') 
-        for i in range(0,5):
+        for i in range(0,6):
             for layer in layers:
                 os.makedirs(f'{PATH}/sounds/{layer}{i}') 
 
