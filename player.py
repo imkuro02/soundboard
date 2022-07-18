@@ -78,16 +78,35 @@ class player:
     def mute_mic(self,mute):
         os.system(f'pacmd set-source-mute {self.default_mic} {mute}')
 
+    def kill_all_sound(self):
+       pids = os.popen('ps aux | grep -i soundboardPaplay | awk \'{print $2}\'').read() # get all soundplayers owned by this program
+       pids = str(pids).split()
+       for pid in pids:
+           try: 
+               pid = int(str(pid))
+           except ValueError:
+                return
+
+           try:
+                os.kill(pid,signal.SIGKILL)
+           except ProcessLookupError:
+                # this pid cant be killed, who cares tho
+                pass    
+           except PermissionError:
+                pass
+           
     def play_sound(self, sound):
         self.sound = sound
 
         def play(player_id, sound):
             print(f'playing {self.sound}')
-            self.mute_mic(1)
-            os.system(f"bash -c 'exec -a {self.paplay_name} paplay {self.sound} -d {self.sound_board}&'") # read man page for vol
-            os.system(f"bash -c 'exec -a {self.paplay_name} paplay {self.sound} -d {self.default_speaker} --volume 25536'") # read man page for vol
-            
+            self.mute_mic(1) # mute mic
+
+            os.system(f"bash -c 'exec -a {self.paplay_name} paplay {self.sound} -d {self.sound_board}&'")# read man page for vol
+            os.system(f"bash -c 'exec -a {self.paplay_name} paplay {self.sound} -d {self.default_speaker} --volume 25536'")# read man page for vol
+
             self.players.remove(player_id)
+           
             if len(self.players) == 0:
                 self.mute_mic(0)
 

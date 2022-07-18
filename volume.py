@@ -41,34 +41,38 @@ def change_volume(vol):
         print(f'{CONFIG}, not found probably just written')
 
     sources = []
-    with Pulse(CLIENT) as pulse:
-        for i, link in enumerate(links):
-                # enum all pulse outputs
-                for cl in pulse.sink_input_list():
-                    #print(link['name'].lower(),cl.proplist['application.process.binary'].lower())
-                    #print(int(link['pid']),cl.proplist['application.process.id'])
-                    for source in link:
-                        sources.append(source.lower())
-                        # check if app has a process.binary
-                        if 'application.process.binary' in cl.proplist:
-                            if source.lower() in cl.proplist['application.process.binary'].lower():
-                                try:
-                                    pulse.volume_set_all_chans(cl, (int(vol[i])/100))
-                                except Exception as e:
-                                    print(e)
-                            
-        # vol control for unlinked programs
-        for cl in pulse.sink_input_list():
-            failed = False
-            if 'application.process.binary' in cl.proplist:
-                if cl.proplist['application.process.binary'].lower() in sources:
-                    failed = True
-                # ignore soundboard playing stuff
-                if cl.proplist['application.name'] in PAPLAY_NAME:
-                    failed = True
-                # ignore weird stuff
-                if cl.driver != 'protocol-native.c':
-                    failed = True
-                if not failed:
-                    #print(cl.proplist['application.process.binary'].lower())
-                    pulse.volume_set_all_chans(cl, (int(vol[0])/100))
+    try:
+        with Pulse(CLIENT) as pulse:
+            for i, link in enumerate(links):
+                    # enum all pulse outputs
+                    for cl in pulse.sink_input_list():
+                        #print(link['name'].lower(),cl.proplist['application.process.binary'].lower())
+                        #print(int(link['pid']),cl.proplist['application.process.id'])
+                        for source in link:
+                            sources.append(source.lower())
+                            # check if app has a process.binary
+                            if 'application.process.binary' in cl.proplist:
+                                if source.lower() in cl.proplist['application.process.binary'].lower():
+                                    try:
+                                        pulse.volume_set_all_chans(cl, (int(vol[i])/100))
+                                    except Exception as e:
+                                        print(e)
+                                
+            # vol control for unlinked programs
+            for cl in pulse.sink_input_list():
+                failed = False
+                if 'application.process.binary' in cl.proplist:
+                    if cl.proplist['application.process.binary'].lower() in sources:
+                        failed = True
+                    # ignore soundboard playing stuff
+                    if cl.proplist['application.name'] in PAPLAY_NAME:
+                        failed = True
+                    # ignore weird stuff
+                    if cl.driver != 'protocol-native.c':
+                        failed = True
+                    if not failed:
+                        #print(cl.proplist['application.process.binary'].lower())
+                        pulse.volume_set_all_chans(cl, (int(vol[0])/100))
+    except Exception as e:
+        print(e)
+        print('failed to connect to pulseaudio server')

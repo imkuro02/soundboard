@@ -54,8 +54,7 @@ def main():
     sleep(2) 
 
     while 1:
-        serialPort.flush()
-        sleep(.05)
+        #serialPort.flush()
         # Wait until there is data waiting in the serial buffer
         if serialPort.in_waiting > 0:
             # Read data out of the buffer until a carraige return / new line is found
@@ -80,6 +79,7 @@ def main():
                         layer = 'c'
                     if '9' in output:
                         P.cleanup(False) # if you dont say False here, module-null-sink will get removed
+                        P.kill_all_sound()
                         volume.get_window()
                 else: # if not the last 4 buttons then:
                     output = int(output)

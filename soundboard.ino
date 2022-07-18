@@ -37,7 +37,6 @@ void setup()
 
 void loop()
 {
-  delay(100);
   BUTTON_1_state = digitalRead(BUTTON_1);
   BUTTON_2_state = digitalRead(BUTTON_2);
   BUTTON_3_state = digitalRead(BUTTON_3);
