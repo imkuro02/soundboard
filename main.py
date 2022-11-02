@@ -21,7 +21,7 @@ signal.signal(signal.SIGTERM, handle_exit)
 signal.signal(signal.SIGINT, handle_exit)
 
 
-print('2022-06-08 162300')
+print('2022-11-02 145000')
 
 def reload_player(p):
     for i in range(0,6):
@@ -53,50 +53,78 @@ def main():
 
     sleep(2) 
 
+    prev_output = ''
+
+    def myround(x, base=2):
+        return base * round(x/base)
+
+    def get_sound(output,as_list=False):
+        output = int(output)
+        path = f'sounds/{layer}{output}/'
+        sounds = os.listdir(path)
+        if len(sounds) > 0:
+            if as_list:
+                return(f'{sounds}') 
+            sound = random.randrange(0, len(sounds))
+            return(f'{path}{sounds[sound]}') 
+
     while 1:
-        #serialPort.flush()
-        # Wait until there is data waiting in the serial buffer
-        if serialPort.in_waiting > 0:
-            # Read data out of the buffer until a carraige return / new line is found
-            serialString = serialPort.readline()
-            # Print the contents of the serial data
-            output = serialString.decode("Ascii")
+        try:
+            #serialPort.flush()
+            # Wait until there is data waiting in the serial buffer
+            if serialPort.in_waiting > 0:
+                # Read data out of the buffer until a carraige return / new line is found
+                serialString = serialPort.readline()
+                # Print the contents of the serial data
+                output = serialString.decode("Ascii")
 
-            # if it has tabs then its the volume sliders
-            if '\t' in output:
-                output = (f"{output}").split('\t')
-                output = map(int, output)
-                output = list(output)
-                volume.change_volume(output)
-            else:
-                # last 4 buttons are volume slider links
-                if int(output)>=6:
-                    if '6' in output:
-                        layer = 'a'
-                    if '7' in output:
-                        layer = 'b'
-                    if '8' in output:
-                        layer = 'c'
-                    if '9' in output:
-                        P.cleanup(False) # if you dont say False here, module-null-sink will get removed
-                        P.kill_all_sound()
-                        volume.get_window()
-                else: # if not the last 4 buttons then:
-                    output = int(output)
-                    path = f'sounds/{layer}{output}/'
-                    sounds = os.listdir(path)
-                    if len(sounds) > 0:
-                        print(sounds)
-                        sound = random.randrange(0, len(sounds))
-                        P.play_sound(f'{path}{sounds[sound]}') 
+                # if it has tabs then its the volume sliders
+                if '\t' in output:
+                    output = (f"{output}").split('\t')
+                    output = map(int, output)
+                    output = list(output)
+
+                    for i, x in enumerate(output):
+                        output[i] = myround(x)
+
+                    if output != prev_output:
+                        print(output)
+                        prev_output = output
+                        volume.change_volume(output)
+
+                else:
+                    # last 4 buttons are volume slider links
+                    if int(output)>=6:
+                        if '6' in output:
+                            layer = 'a'
+                        if '7' in output:
+                            layer = 'b'
+                        if '8' in output:
+                            layer = 'c'
+                        if '9' in output:
+                            P.cleanup(False) # if you dont say False here, module-null-sink will get removed
+                            P.kill_all_sound()
+                            volume.get_window()
+                        else:
+                            print('layer:',layer)
+                            sounds = []
+                            for i in range(0,5):
+                                sounds.append(get_sound(i,True))
+                            print(sounds)
+
+                    else: # if not the last 4 buttons then:
+                        s=get_sound(output)
+                        P.play_sound(s) 
 
 
-            # this code gets current voice mode and sends that to arduino
-            '''
-            voice_mode = p.get_voice()
-            print(voice_mode)
-            serialPort.write(str(voice_mode).encode()+b'\n')
-            '''
+                # this code gets current voice mode and sends that to arduino
+                '''
+                voice_mode = p.get_voice()
+                print(voice_mode)
+                serialPort.write(str(voice_mode).encode()+b'\n')
+                '''
+        except UnicodeDecodeError:
+            print('oop')
 
 def setup():
     layers = 'a b c'.split()
