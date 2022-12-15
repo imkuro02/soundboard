@@ -21,7 +21,7 @@ signal.signal(signal.SIGTERM, handle_exit)
 signal.signal(signal.SIGINT, handle_exit)
 
 
-print('2022-11-02 145000')
+print('2022-12-15 221400')
 
 def reload_player(p):
     for i in range(0,6):
@@ -53,7 +53,7 @@ def main():
 
     sleep(2) 
 
-    prev_output = ''
+    prev_output = [0,0,0,0]
 
     def myround(x, base=2):
         return base * round(x/base)
@@ -84,14 +84,26 @@ def main():
                     output = map(int, output)
                     output = list(output)
 
+                    '''
                     for i, x in enumerate(output):
-                        output[i] = myround(x)
+                        output[i] = myround(x,10)
 
                     if output != prev_output:
                         print(output)
                         prev_output = output
                         volume.change_volume(output)
+                    '''
 
+                    update = False
+                    for _,i in enumerate(output):
+                        i = int(i)
+                        if i > prev_output[_] + 1 or i < prev_output[_] - 1:
+                            update = True
+                            
+                    if update:
+                        print(output)
+                        prev_output = output
+                        volume.change_volume(output)
                 else:
                     # last 4 buttons are volume slider links
                     if int(output)>=6:
