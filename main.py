@@ -69,6 +69,7 @@ def main():
             return(f'{path}{sounds[sound]}') 
 
     while 1:
+        sleep(0.1)
         try:
             #serialPort.flush()
             # Wait until there is data waiting in the serial buffer

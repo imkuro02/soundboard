@@ -25,6 +25,7 @@ int slider0_val = 0;
 int slider1_val = 0;
 int slider2_val = 0;
 int slider3_val = 0;
+int prev_sliders = 0;
 
 void setup()
 {
@@ -35,8 +36,10 @@ void setup()
   pinMode(LED, OUTPUT);
 }
 
+  
 void loop()
 {
+  
   BUTTON_1_state = digitalRead(BUTTON_1);
   BUTTON_2_state = digitalRead(BUTTON_2);
   BUTTON_3_state = digitalRead(BUTTON_3);
@@ -56,14 +59,18 @@ void loop()
   slider3_val = analogRead(A4);
   slider3_val = map(slider3_val, 0, 1023, 0, 100);
 
-  Serial.print(slider0_val);
-  Serial.print("\t");
-  Serial.print(slider1_val);
-  Serial.print("\t");
-  Serial.print(slider2_val);
-  Serial.print("\t");
-  Serial.println(slider3_val);
+  if (prev_sliders != slider0_val+slider1_val+slider2_val+slider3_val){
+    Serial.print(slider0_val);
+    Serial.print("\t");
+    Serial.print(slider1_val);
+    Serial.print("\t");
+    Serial.print(slider2_val);
+    Serial.print("\t");
+    Serial.println(slider3_val);    
+  }
   
+  prev_sliders = slider0_val+slider1_val+slider2_val+slider3_val;
+
   if (BUTTON_1_state == HIGH && pressed == false)
   {
     //digitalWrite(LED, HIGH);
